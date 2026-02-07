@@ -608,6 +608,348 @@ window.addEventListener('DOMContentLoaded', init);
 // EASTER EGG (Doble Click para corromper manualmente)
 document.addEventListener('dblclick', triggerCorruption);
 
-</script>
-</body>
-</html>
+
+const DATABASE = [
+ {
+  id: "Goku",
+  name: "Son Goku",
+  universe: "SUPER",
+  avatar: "https://static.wikia.nocookie.net/dragonball/images/8/8a/Goku_UI.png",
+  // Array de Transformaciones
+  forms: [
+    {
+      name: "Base",
+      img: "https://i.pinimg.com/originals/f3/26/22/f3262270cc6a0840b3c6b0336ae98342.gif",
+      stats: { str: 40, spd: 50, ki: 40, tec: 90, def: 30 },
+      lore: "Estado base. Posee un dominio de artes marciales pulido por décadas."
+    },
+    {
+      name: "Super Saiyajin Blue",
+      img: "https://media.giphy.com/media/12KDixncjK6l7G/giphy.gif",
+      stats: { str: 85, spd: 80, ki: 95, tec: 85, def: 70 },
+      lore: "Super Saiyajin con el poder de un Dios Super Saiyajin. Control de Ki perfecto."
+    },
+    {
+      name: "Ultra Instinto (MUI)",
+      img: "https://cdn.coverr.co/videos/coverr-energy-burst-1534/1080p.mp4", // Video de fondo
+      isVideo: true,
+      stats: { str: 98, spd: 100, ki: 90, tec: 100, def: 99 },
+      lore: "La técnica de los ángeles. El cuerpo reacciona independientemente de la mente."
+    }
+  ]
+ },
+ {
+  id: "Vegeta",
+  name: "Vegeta IV",
+  universe: "SUPER",
+  avatar: "https://static.wikia.nocookie.net/dragonball/images/1/19/Vegeta_Super.png",
+  forms: [
+    {
+      name: "Super Saiyajin Blue",
+      img: "https://media.giphy.com/media/l0HlG6dGZt2kqk1nG/giphy.gif",
+      stats: { str: 86, spd: 78, ki: 94, tec: 88, def: 75 },
+      lore: "La evolución divina del príncipe. Enfocado en potencia bruta."
+    },
+    {
+      name: "Ultra Ego",
+      img: "https://cdn.coverr.co/videos/coverr-purple-energy-explosion-9266/1080p.mp4",
+      isVideo: true,
+      stats: { str: 100, spd: 85, ki: 92, tec: 80, def: 100 }, // Defensa alta por recibir daño
+      lore: "El poder de la Destrucción. Cuanto más daño recibe, más fuerte se vuelve."
+    }
+  ]
+ }
+ /* --- HOLO-MODAL (NUEVO) --- */
+.holo-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(20px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: 0.5s;
+}
+.holo-modal.active { opacity: 1; pointer-events: all; }
+
+.holo-content {
+  width: 90%; max-width: 1000px; height: 80vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--border);
+  background: radial-gradient(circle at center, rgba(10,10,30,0.8), #000);
+  box-shadow: 0 0 50px rgba(0,210,211,0.1);
+  border-radius: 20px; overflow: hidden;
+  position: relative;
+}
+
+/* Columna Visual */
+.holo-visual { position: relative; border-right: 1px solid var(--border); }
+.holo-img { width: 100%; height: 100%; object-fit: cover; }
+.scan-line {
+  position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+  background: var(--neon);
+  box-shadow: 0 0 20px var(--neon);
+  animation: scan 3s infinite linear;
+  opacity: 0.5;
+}
+
+/* Columna Datos */
+.holo-data { padding: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+.holo-title { font-size: 2.5rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+.holo-subtitle { color: var(--gold); letter-spacing: 2px; }
+
+/* Selector de Formas */
+.form-selector { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+.form-btn {
+  background: transparent; border: 1px solid var(--border); color: #fff;
+  padding: 0.5rem 1rem; cursor: pointer; transition: 0.3s;
+  font-family: inherit; text-transform: uppercase; font-size: 0.8rem;
+}
+.form-btn:hover, .form-btn.active {
+  background: var(--neon); color: #000; box-shadow: 0 0 15px var(--neon); border-color: var(--neon);
+}
+
+/* Canvas Radar */
+.chart-container {
+  flex: 1; position: relative;
+  display: flex; justify-content: center; align-items: center;
+}
+canvas#statRadar { max-width: 300px; max-height: 300px; }
+
+.close-btn {
+  position: absolute; top: 20px; right: 20px;
+  font-size: 2rem; cursor: pointer; color: var(--red); z-index: 10;
+}
+
+@keyframes scan { 0%{top:0%} 100%{top:100%} }
+@media(max-width: 768px){ .holo-content{ grid-template-columns: 1fr; overflow-y: auto; } }
+ /* --- HOLO-MODAL (NUEVO) --- */
+.holo-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.95);
+  backdrop-filter: blur(20px);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: 0.5s;
+}
+.holo-modal.active { opacity: 1; pointer-events: all; }
+
+.holo-content {
+  width: 90%; max-width: 1000px; height: 80vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--border);
+  background: radial-gradient(circle at center, rgba(10,10,30,0.8), #000);
+  box-shadow: 0 0 50px rgba(0,210,211,0.1);
+  border-radius: 20px; overflow: hidden;
+  position: relative;
+}
+
+/* Columna Visual */
+.holo-visual { position: relative; border-right: 1px solid var(--border); }
+.holo-img { width: 100%; height: 100%; object-fit: cover; }
+.scan-line {
+  position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+  background: var(--neon);
+  box-shadow: 0 0 20px var(--neon);
+  animation: scan 3s infinite linear;
+  opacity: 0.5;
+}
+
+/* Columna Datos */
+.holo-data { padding: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+.holo-title { font-size: 2.5rem; font-weight: 900; color: #fff; text-transform: uppercase; }
+.holo-subtitle { color: var(--gold); letter-spacing: 2px; }
+
+/* Selector de Formas */
+.form-selector { display: flex; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+.form-btn {
+  background: transparent; border: 1px solid var(--border); color: #fff;
+  padding: 0.5rem 1rem; cursor: pointer; transition: 0.3s;
+  font-family: inherit; text-transform: uppercase; font-size: 0.8rem;
+}
+.form-btn:hover, .form-btn.active {
+  background: var(--neon); color: #000; box-shadow: 0 0 15px var(--neon); border-color: var(--neon);
+}
+
+/* Canvas Radar */
+.chart-container {
+  flex: 1; position: relative;
+  display: flex; justify-content: center; align-items: center;
+}
+canvas#statRadar { max-width: 300px; max-height: 300px; }
+
+.close-btn {
+  position: absolute; top: 20px; right: 20px;
+  font-size: 2rem; cursor: pointer; color: var(--red); z-index: 10;
+}
+
+@keyframes scan { 0%{top:0%} 100%{top:100%} }
+@media(max-width: 768px){ .holo-content{ grid-template-columns: 1fr; overflow-y: auto; } }
+ 
+ <div class="holo-modal" id="holoModal">
+  <div class="holo-content">
+    <div class="close-btn" onclick="closeHolo()">×</div>
+    
+    <div class="holo-visual" id="holoVisual">
+      <div class="scan-line"></div>
+      </div>
+
+    <div class="holo-data">
+      <div>
+        <h1 class="holo-title" id="holoName">NOMBRE</h1>
+        <div class="holo-subtitle" id="holoFormName">FORMA BASE</div>
+      </div>
+      
+      <div class="form-selector" id="formSelector">
+        </div>
+
+      <p id="holoLore" style="color:#aaa; font-size:0.9rem; line-height:1.6"></p>
+
+      <div class="chart-container">
+        <canvas id="statRadar"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+ // --- VARIABLES GLOBALES NUEVAS ---
+const modal = document.getElementById('holoModal');
+const ctx = document.getElementById('statRadar').getContext('2d');
+let currentEntity = null; // Para saber quién está abierto
+
+// --- SOBREESCRIBIR LA FUNCIÓN activateEntry ---
+// (Esta reemplaza la función activateEntry anterior para abrir el modal)
+function activateEntry(entry){
+  currentEntity = entry;
+  modal.classList.add('active');
+  
+  // Reproducir sonido
+  playHover(); 
+  
+  // Renderizar datos base
+  document.getElementById('holoName').innerText = entry.name;
+  
+  // Generar botones de transformaciones
+  const selector = document.getElementById('formSelector');
+  selector.innerHTML = '';
+  
+  entry.forms.forEach((form, index) => {
+    const btn = document.createElement('button');
+    btn.className = `form-btn ${index === 0 ? 'active' : ''}`;
+    btn.innerText = form.name;
+    btn.onclick = (e) => loadForm(index, e.target);
+    selector.appendChild(btn);
+  });
+
+  // Cargar la primera forma por defecto
+  loadForm(0, selector.children[0]);
+}
+
+// --- FUNCIÓN PARA CARGAR UNA FORMA ESPECÍFICA ---
+function loadForm(index, btnElement){
+  // UI Update
+  document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active'));
+  if(btnElement) btnElement.classList.add('active');
+
+  const form = currentEntity.forms[index];
+  
+  // Texto
+  document.getElementById('holoFormName').innerText = form.name;
+  document.getElementById('holoLore').innerText = form.lore;
+  
+  // Media (Video o Imagen)
+  const visualContainer = document.getElementById('holoVisual');
+  // Mantenemos la scan-line, borramos el resto
+  const scan = visualContainer.querySelector('.scan-line');
+  visualContainer.innerHTML = ''; 
+  visualContainer.appendChild(scan);
+
+  if(form.isVideo){
+    const vid = document.createElement('video');
+    vid.src = form.img;
+    vid.className = 'holo-img';
+    vid.loop = true; vid.muted = true; vid.autoplay = true;
+    visualContainer.appendChild(vid);
+  } else {
+    const img = document.createElement('img');
+    img.src = form.img;
+    img.className = 'holo-img';
+    visualContainer.appendChild(img);
+  }
+
+  // Dibujar Gráfico
+  drawRadarChart(form.stats);
+  
+  // Narrador (Opcional)
+  speak(form.name + ". " + form.lore);
+}
+
+function closeHolo(){
+  modal.classList.remove('active');
+  document.getElementById('holoVisual').innerHTML = '<div class="scan-line"></div>'; // Limpiar memoria visual
+}
+
+// --- MOTOR GRÁFICO DEL RADAR (CANVAS PURO) ---
+function drawRadarChart(stats) {
+  // Limpiar canvas
+  ctx.clearRect(0, 0, 300, 300);
+  
+  const w = 300, h = 300;
+  const cx = w/2, cy = h/2;
+  const radius = 100;
+  
+  // Definir Ejes (5 Puntos: STR, SPD, KI, TEC, DEF)
+  const labels = ['FUERZA', 'VELOCIDAD', 'KI', 'TÉCNICA', 'DEFENSA'];
+  const values = [stats.str, stats.spd, stats.ki, stats.tec, stats.def];
+  const angleSlice = (Math.PI * 2) / 5;
+
+  // 1. Dibujar la "Telaraña" de fondo (Grid)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  ctx.lineWidth = 1;
+  
+  for(let level = 1; level <= 4; level++){
+    ctx.beginPath();
+    for(let i = 0; i < 5; i++){
+      const r = (radius / 4) * level;
+      const angle = i * angleSlice - Math.PI/2;
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+      if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // 2. Dibujar el Polígono de Stats
+  ctx.beginPath();
+  for(let i = 0; i < 5; i++){
+    // Normalizar valor (0-100) a radio
+    const valRadius = (values[i] / 100) * radius;
+    const angle = i * angleSlice - Math.PI/2;
+    const x = cx + Math.cos(angle) * valRadius;
+    const y = cy + Math.sin(angle) * valRadius;
+    
+    if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  
+  // Estilo del Área
+  ctx.fillStyle = 'rgba(0, 210, 211, 0.4)'; // Color Neon
+  ctx.fill();
+  ctx.strokeStyle = '#00d2d3';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 3. Dibujar Etiquetas
+  ctx.font = '10px Segoe UI';
+  ctx.fillStyle = '#ffd166'; // Gold
+  ctx.textAlign = 'center';
+  
+  for(let i = 0; i < 5; i++){
+    const angle = i * angleSlice - Math.PI/2;
+    // Un poco más afuera del radio
+    const x = cx + Math.cos(angle) * (radius + 20);
+    const y = cy + Math.sin(angle) * (radius + 20);
+    ctx.fillText(labels[i], x, y);
+  }
+                      }
+ 
